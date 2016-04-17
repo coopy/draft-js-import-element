@@ -11,6 +11,7 @@ import {List, OrderedSet, Repeat, Seq} from 'immutable';
 import {BLOCK_TYPE, ENTITY_TYPE, INLINE_STYLE} from 'draft-js-utils';
 import {NODE_TYPE_ELEMENT, NODE_TYPE_TEXT} from 'synthetic-dom';
 
+import type {Set, SetSeq} from 'immutable';
 import type {
   Node as SyntheticNode,
   ElementNode as SyntheticElement,
@@ -19,8 +20,8 @@ import type {
 type DOMNode = SyntheticNode | Node;
 type DOMElement = SyntheticElement | Element;
 
-type CharacterMetaSeq = Seq<CharacterMetadata>;
-type StyleSet = OrderedSet;
+type CharacterMetaSeq = SetSeq<CharacterMetadata>;
+type StyleSet = Set;
 
 type TextFragment = {
   text: string;
@@ -257,9 +258,11 @@ class BlockGenerator {
       style: style,
       entity: entity,
     });
+    // $FlowIssue - Flow expects `Repeat` to return an indexed sequence.
+    let seq: CharacterMetaSeq = Repeat(charMetadata, text.length);
     block.textFragments.push({
       text: text,
-      characterMeta: Repeat(charMetadata, text.length),
+      characterMeta: seq,
     });
   }
 
@@ -331,7 +334,8 @@ function canHaveDepth(blockType: string): boolean {
 
 function concatFragments(fragments: Array<TextFragment>): TextFragment {
   let text = '';
-  let characterMeta = Seq();
+  // $FlowIssue - Flow expects `Seq` to return an indexed sequence.
+  let characterMeta: CharacterMetaSeq = Seq();
   fragments.forEach((textFragment: TextFragment) => {
     text = text + textFragment.text;
     characterMeta = characterMeta.concat(textFragment.characterMeta);
